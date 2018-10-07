@@ -1,0 +1,33 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+
+const path = '/Applications/SizeUp.app/Contents/MacOS/SizeUp';
+const buf = Buffer.alloc(6); // tmp
+const signature = Buffer.from([0xe8, 0xae, 0x5c, 0x01, 0x00, 0xba]); // 特征码
+const patch = Buffer.from([0x00]); // 补丁字节
+const position = 0x947d; // 地址
+
+(function main() {
+  if (!fs.existsSync(path)) {
+    console.log('SizeUp is not installed!');
+    console.log('You can use this command `brew cask install sizeup`');
+    return false;
+  }
+
+  const fd = fs.openSync(path, 'rs+');
+
+  fs.readSync(fd, buf, 0, 6, position - 6);
+
+  if (buf.compare(signature) !== 0) {
+    console.log('This version is not supported!');
+    return false;
+  }
+
+  fs.writeSync(fd, patch, 0, 1, position);
+  console.log('Patch success!');
+
+  fs.closeSync(fd);
+
+  return true;
+})();
