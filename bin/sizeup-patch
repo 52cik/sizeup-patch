@@ -3,10 +3,14 @@
 const fs = require('fs');
 
 const path = '/Applications/SizeUp.app/Contents/MacOS/SizeUp';
-const buf = Buffer.alloc(6); // tmp
-const signature = Buffer.from([0xe8, 0xae, 0x5c, 0x01, 0x00, 0xba]); // 特征码
-const patch = Buffer.from([0x00]); // 补丁字节
+
+const trait = Buffer.from([0xe8, 0xae, 0x5c, 0x01, 0x00, 0xba]); // 特征码
+const traitLength = trait.length;
+
 const position = 0x947d; // 地址
+const patch = Buffer.from([0]); // 补丁字节
+
+const buf = Buffer.alloc(traitLength); // tmp
 
 (function main() {
   if (!fs.existsSync(path)) {
@@ -17,9 +21,9 @@ const position = 0x947d; // 地址
 
   const fd = fs.openSync(path, 'rs+');
 
-  fs.readSync(fd, buf, 0, 6, position - 6);
+  fs.readSync(fd, buf, 0, traitLength, position - traitLength);
 
-  if (buf.compare(signature) !== 0) {
+  if (buf.compare(trait) !== 0) {
     console.log('This version is not supported!');
     return false;
   }
